@@ -1,0 +1,18 @@
+_target_: src.models.classification_module.ClassificationLitModule
+lr: 0.001
+weight_decay: 0.0005
+
+net:
+  _target_: src.models.components.simple_dense_net.SimpleDenseNet
+  input_size: 1
+  lin1_size: 256
+  lin2_size: 256
+  lin3_size: 256
+  output_size: 1
+  use_batchnorm: True
+
+criterion:
+  _target_: torch.nn.CrossEntropyLoss
+
+calibrator:
+  _target_: torchuq.transform.calibrate.TemperatureScaling

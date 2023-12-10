@@ -1,0 +1,43 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /datamodule: regression.yaml
+  - override /model: regression.yaml
+  - override /callbacks: default.yaml
+  - override /logger: wandb.yaml
+  - override /trainer: default.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# name of the run determines folder name in logs
+name: "regression_nll"
+
+hparams_search: nll_optuna.yaml
+
+seed: 12345
+
+trainer:
+  min_epochs: 10
+  max_epochs: 200
+  gradient_clip_val: 0.5
+
+model:
+  lr: 0.001
+  net:
+    lin1_size: 256
+    lin2_size: 256
+    lin3_size: 256
+  criterion:
+    _target_: src.metrics.losses.GMMNLLLoss
+
+datamodule:
+  batch_size: 64
+  normalize_y: True
+
+logger:
+  wandb:
+    tags: ["regression", "hparam", "${name}", "${datamodule.dataset_name}"]

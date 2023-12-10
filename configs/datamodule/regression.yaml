@@ -1,0 +1,10 @@
+_target_: src.datamodules.regression_datamodule.RegressionDataModule
+
+dataset_name: "wine"
+data_dir: ${paths.data_dir} # data_dir is specified in config.yaml
+batch_size: 64
+test_batch_size: 128
+train_val_test_split: [0.7, 0.1, 0.2]
+num_workers: 0
+pin_memory: False
+normalize_y: True

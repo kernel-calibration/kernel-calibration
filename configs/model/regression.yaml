@@ -1,0 +1,35 @@
+_target_: src.models.gmm_module.GMMLitModule
+lr: 0.001
+weight_decay: 0.0005
+
+net:
+  _target_: src.models.components.gmm_dense_net.DenseGMMNet
+  input_size: 1
+  lin1_size: 256
+  lin2_size: 256
+  lin3_size: 256
+  output_size: 1
+  num_components: 1
+  use_batchnorm: True
+
+criterion:
+  _target_: src.metrics.losses.GMMKernelLoss
+  operands:
+    x: "rbf"
+    y: "rbf"
+  bandwidth: 1
+  scalers:
+    x: 1
+    y: 1
+
+calibrator:
+  _target_: torchuq.transform.conformal.ConformalCalibrator
+  input_type: 'distribution'
+  interpolation: 'linear'
+  score_func: 1
+
+# decision_loss:
+#   _target_: src.metrics.losses.DecisionCalibrationLoss
+#   loss_fn_cls: loss_fn_1
+#   actions: [-1, 1]
+#   metric: 'L2'

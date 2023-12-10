@@ -1,0 +1,20 @@
+# https://wandb.ai
+
+wandb:
+  _target_: pytorch_lightning.loggers.wandb.WandbLogger
+  project: "hparams_search"
+  name: ${name}
+  save_dir: "."
+  offline: False # set True to store all logs only locally
+  id: null # pass correct id to resume experiment!
+
+  # settings:
+  #   _target_: wandb.Settings
+  #   start_method: "thread"
+
+  # entity: ""  # set to name of your wandb team
+  log_model: False
+  prefix: ""
+  job_type: "train"
+  group: ""
+  tags: []
