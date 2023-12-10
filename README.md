@@ -25,7 +25,7 @@ This allows us to jointly optimize calibration and sharpness.
 
 ## A General Recipe for Decision Calibration
 
-MMD measures Decision Calibration Error when we define the feature map φ(y) that computes the losses of all actions. Low Decision Calibration Error gives ***no-regret decision-making*** and ***accurate loss estimation***. Using the kernel trick, we can enforce decision calibration even when the action space or set of loss functions is infinite.
+MMD measures Decision Calibration Error when we define the feature map $\phi(y)$ that computes the losses of all actions. Low Decision Calibration Error gives ***no-regret decision-making*** and ***accurate loss estimation***. Using the kernel trick, we can enforce decision calibration even when the action space or set of loss functions is infinite.
 
 <p align="center">
 <img src="kernel_calibration.png" height="250" />
