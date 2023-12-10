@@ -19,10 +19,17 @@ By modifying the variables in the MMD metric, we can express many popular calibr
 $$ \min_{\theta \in \Theta} \sum_{i \in D_b} - \log q_{Y \mid x_i ; \theta}(y_i) + \lambda \cdot \widehat{\mathrm{MMD}}^2(\mathcal{F},D_b, Q_\theta) $$
 
 This allows us to jointly optimize calibration and sharpness.
+<p align="center">
+<img src="calibration_tradeoff.png" height="250" />
+</p>
 
 ## A General Recipe for Decision Calibration
 
 MMD measures Decision Calibration Error when we define the feature map φ(y) that computes the losses of all actions. Low Decision Calibration Error gives ***no-regret decision-making*** and ***accurate loss estimation***. Using the kernel trick, we can enforce decision calibration even when the action space or set of loss functions is infinite.
+
+<p align="center">
+<img src="kernel_calibration.png" height="250" />
+</p>
 
 ## Setup
 
