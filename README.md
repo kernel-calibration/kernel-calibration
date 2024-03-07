@@ -42,7 +42,7 @@ git clone https://github.com/kernel-calibration/kernel-calibration.git
 Create the conda environment
 
 ```
-conda env create --name kcalibration
+conda create -n "kcalibration" python=3.10.8 ipython
 conda activate kcalibration
 ```
 

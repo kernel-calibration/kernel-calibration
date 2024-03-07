@@ -40,7 +40,7 @@ model:
     mc_type: 'canonical'
 
 datamodule:
-  batch_size: 8
+  batch_size: 64
   test_batch_size: 8
 
 logger:
