@@ -11,7 +11,7 @@ def gmm_params_to_dist(mean, std, prob):
     :param prob: (batch_size, target_dim, n_components)
     :return: torch distribution object
     """
-    std = std.clip(min=0.01)
+    std = std.clip(min=0.05)
     comp = D.Normal(mean.squeeze(-1), std.squeeze(-1))
 
     assert len(prob.shape) == 3
@@ -57,9 +57,9 @@ def gmm_nll(target, mean, std, prob, reduce=True):
     """
     dist = gmm_params_to_dist(mean, std, prob)
     log_prob = dist.log_prob(target)  # (batch_size, target_dim) or (label_queries, batch_size, target_dim)
-    log_prob = log_prob.sum(dim=-1)  # (batch_size,) or (label_queries, batch_size)
+    log_prob = log_prob.mean(dim=-1)  # (batch_size,) or (label_queries, batch_size)
     if reduce:
-        log_prob = log_prob.sum(dim=-1)  # (1,) or (label_queries,)
+        log_prob = log_prob.mean(dim=-1)  # (1,) or (label_queries,)
     return - log_prob
 
 def gmm_nll_dist(target, dist, reduce=True):
@@ -69,9 +69,9 @@ def gmm_nll_dist(target, dist, reduce=True):
     :return: (batch_size) or (batch_size, label_queries) nll
     """
     log_prob = dist.log_prob(target).view(-1,1)  # (batch_size, target_dim) or (label_queries, batch_size, target_dim)
-    log_prob = log_prob.sum(dim=-1)  # (batch_size,) or (label_queries, batch_size)
+    log_prob = log_prob.mean(dim=-1)  # (batch_size,) or (label_queries, batch_size)
     if reduce:
-        log_prob = log_prob.sum(dim=-1)  # (1,) or (label_queries,)
+        log_prob = log_prob.mean(dim=-1)  # (1,) or (label_queries,)
     return - log_prob
 
 

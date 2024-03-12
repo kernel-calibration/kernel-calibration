@@ -40,10 +40,10 @@ class GMMKernelLoss:
         `kwargs` specifies the parameters of the kernel functions, such as bandwidth
     """
     def __init__(self,
-                 operands: Dict[str, str] = {'x': "rbf", 'p': "rbf"},
+                 operands: Dict[str, str] = {'x': "rbf", 'y': "rbf"},
                  scalers: Optional[Dict] = None,
                  num_samples: Optional[int] = 10,
-                 **kwargs):
+                 bandwidths: Optional[Dict] = {'x': 10.0, 'y': 0.1}):
 
         assert all([op in VALID_OPERANDS for op in operands.keys()])
 
@@ -56,7 +56,7 @@ class GMMKernelLoss:
         self.operands = list(operands.keys())
         self.scalers = scalers
         self.num_samples = num_samples
-        self.kwargs = kwargs
+        self.bandwidths = bandwidths
 
     def __call__(self, x, y, preds, num_true: Optional[int] = None, use_dist=False, verbose=False):
         if use_dist:
@@ -84,14 +84,15 @@ class GMMKernelLoss:
 
         for op in self.operands:
             scaler = self.scalers[op]
+            bandwidth = self.bandwidths[op]
             if op == 'coords':
                 coords = x[:, :3]
                 op_pred = coords
                 op_true = coords[true_idxs]
 
-                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, **self.kwargs)
-                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, **self.kwargs)
-                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, **self.kwargs)
+                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, bandwidth)
+                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, bandwidth)
+                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, bandwidth)
             elif op == 'x':
                 op_pred = x
                 op_true = x[true_idxs]
@@ -100,27 +101,31 @@ class GMMKernelLoss:
                 assert op_pred.dim() == 2
                 assert op_true.dim() == 2
 
-                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, **self.kwargs)
-                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, **self.kwargs)
-                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, **self.kwargs)
+                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, bandwidth)
+                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, bandwidth)
+                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, bandwidth)
 
             elif op == 'y':
-                y_pred = dist.rsample((self.num_samples,)).permute(1,2,0).to(x.device)
+                y_pred = dist.rsample((self.num_samples,))
+                # Workaround: Post-hoc calibration flattens last dimension
+                if y_pred.dim() == 2:
+                    y_pred = y_pred.unsqueeze(-1)
+                y_pred = y_pred.permute(1,2,0).to(x.device)
                 op_pred = y_pred
                 op_true = y[true_idxs].view(-1, 1)
 
-                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, **self.kwargs).mean(-1)
-                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true.unsqueeze(-1), **self.kwargs).mean(-1)
-                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, **self.kwargs)
+                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, bandwidth).mean(-1)
+                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true.unsqueeze(-1), bandwidth).mean(-1)
+                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, bandwidth)
             elif op == "p":
                 p_pred = dist.cdf(y).view(-1, 1)
                 p_true = torch.rand(num_true, device=x.device).view(-1, 1)
                 op_pred = p_pred
                 op_true = p_true
 
-                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, **self.kwargs)
-                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, **self.kwargs)
-                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, **self.kwargs)
+                loss_mat = scaler * self.kernel_fun[op](op_pred, op_pred, bandwidth)
+                loss_mat2 = scaler * self.kernel_fun[op](op_pred, op_true, bandwidth)
+                loss_mat3 = scaler * self.kernel_fun[op](op_true, op_true, bandwidth)
 
             if verbose:
                 print(f'op = {op}, op_pred.device = {op_pred.device}, op_true.device = {op_true.device}')
@@ -131,7 +136,7 @@ class GMMKernelLoss:
                 else:
                     loss_mats[i] =  loss_mats[i] * value
 
-        kernel_out = mean_no_diag(loss_mats[0]) - 2 * loss_mats[1].mean() + mean_no_diag(loss_mats[2])
+        kernel_out = mean_no_diag(loss_mats[0]) - 2 * mean_no_diag(loss_mats[1]) + mean_no_diag(loss_mats[2])
 
         return kernel_out
 
@@ -175,7 +180,7 @@ class ClassificationKernelLoss:
     def __init__(self,
                  operands: Dict[str, str] = {'x': "rbf", 'y': "rbf"},
                  scalers: Optional[Dict] = None,
-                 bandwidths: Optional[Dict] = {'x': 10.0, 'y': 0.1}):
+                 bandwidths: Optional[Dict] = {'x': 0.01, 'y': 1.0}):
 
         assert all([op in VALID_OPERANDS for op in operands.keys()])
 

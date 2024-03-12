@@ -26,11 +26,11 @@ trainer:
   gradient_clip_val: 0.5
 
 model:
-  lr: 0.001
+  lr: 0.00001
   net:
-    lin1_size: 256
-    lin2_size: 256
-    lin3_size: 256
+    lin1_size: 64
+    lin2_size: 64
+    lin3_size: 64
   criterion:
     _target_: src.metrics.losses.GMMNLLLoss
 

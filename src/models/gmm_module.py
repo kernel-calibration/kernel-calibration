@@ -28,6 +28,7 @@ class GMMLitModule(LightningModule):
             calibrator: Callable = None,
             lr: float = 0.001,
             weight_decay: float = 0.0005,
+            kcal_kwargs = None
     ):
         super().__init__()
 
@@ -49,8 +50,8 @@ class GMMLitModule(LightningModule):
         self.val_cal = GMMCalibrationError()
         self.test_cal = GMMCalibrationError()
 
-        kcal_kwargs = {"operands": {'x': "rbf", 'y': "rbf"}, "scalers": {'p': 1, 'x': 1, 'y': 1}, "bandwidth": 10, "num_samples": 10}
-        self.train_kcal = GMMKernelCalibrationError(**kcal_kwargs)
+        if kcal_kwargs is None:
+            kcal_kwargs = {}
         self.val_kcal = GMMKernelCalibrationError(**kcal_kwargs)
         self.test_kcal = GMMKernelCalibrationError(**kcal_kwargs)
 
@@ -95,13 +96,11 @@ class GMMLitModule(LightningModule):
         # log train metrics
         nll = self.train_nll(preds, targets)
         cal = self.train_cal(preds, targets)
-        kcal = self.train_kcal(preds, targets, inputs)
         dcal = self.train_dcal(preds, targets)
 
         self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
         self.log("train/nll", nll, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
         self.log("train/cal", cal, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
-        self.log("train/kcal", kcal, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
         self.log("train/dcal", dcal, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
 
         # we can return here dict with any tensors
@@ -229,7 +228,6 @@ class GMMLitModule(LightningModule):
         self.test_cal.reset()
         self.val_cal.reset()
 
-        self.train_kcal.reset()
         self.test_kcal.reset()
         self.val_kcal.reset()
 

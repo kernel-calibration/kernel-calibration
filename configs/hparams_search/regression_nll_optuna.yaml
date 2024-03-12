@@ -44,7 +44,7 @@ hydra:
     # define range of hyperparameters
     params:
       datamodule.batch_size: choice(64, 128, 256, 512)
-      model.lr: tag(log, interval(0.000001, 0.01))
+      model.lr: tag(log, interval(0.000001, 0.001))
       model.net.num_components: 1
       model.net.lin1_size: choice(32, 64, 128, 256, 512)
       model.net.lin2_size: choice(32, 64, 128, 256, 512)

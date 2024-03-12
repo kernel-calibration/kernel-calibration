@@ -17,7 +17,9 @@ criterion:
   operands:
     x: "rbf"
     y: "rbf"
-  bandwidth: 1
+  bandwidths:
+    x: 0.01
+    y: 1.0
   scalers:
     x: 1
     y: 1

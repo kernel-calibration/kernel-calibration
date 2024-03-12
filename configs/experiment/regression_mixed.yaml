@@ -26,17 +26,27 @@ trainer:
   gradient_clip_val: 0.5
 
 model:
-  lr: 0.001
+  lr: 0.00001
   net:
-    lin1_size: 256
-    lin2_size: 256
-    lin3_size: 256
+    lin1_size: 64
+    lin2_size: 64
+    lin3_size: 64
   criterion:
     _target_: src.metrics.losses.GMMMixedLoss
     num_samples: 10
     loss_scalers:
-        nll: 0.001
-        mmd: 1
+        nll: 1
+        mmd: 0.2
+  kcal_kwargs:
+    operands:
+      x: "rbf"
+      y: "rbf"
+    scalers:
+      x: 1.0
+      y: 1.0
+    bandwidths:
+      x: 0.01
+      y: 1.0
 
 datamodule:
   batch_size: 64
